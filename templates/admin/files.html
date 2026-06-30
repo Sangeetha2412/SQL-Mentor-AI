@@ -1,0 +1,40 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Files - Admin{% endblock %}
+{% block page_title %}File Management{% endblock %}
+{% block page_subtitle %}All uploaded files{% endblock %}
+{% block content %}
+<div class="admin-search">
+  <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap">
+    <select name="user_id" class="form-control" style="width:200px">
+      <option value="">All Users</option>
+      {% for u in users %}<option value="{{ u.id }}" {% if user_filter == u.id|string %}selected{% endif %}>{{ u.name }}</option>{% endfor %}
+    </select>
+    <select name="file_type" class="form-control" style="width:140px">
+      <option value="">All Types</option>
+      {% for ft in file_types %}<option value="{{ ft }}" {% if type_filter == ft %}selected{% endif %}>{{ ft.upper() }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+    <a href="{{ url_for('admin.files') }}" class="btn btn-ghost btn-sm">Clear</a>
+  </form>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table class="admin-table">
+      <thead><tr><th>Filename</th><th>Type</th><th>Size</th><th>User</th><th>Status</th><th>Uploaded</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for f in files %}
+        <tr id="file-row-{{ f.id }}">
+          <td style="font-size:0.85rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.original_filename }}</td>
+          <td><span class="badge badge-purple">{{ f.file_type.upper() }}</span></td>
+          <td style="font-size:0.82rem">{{ format_size(f.file_size or 0) }}</td>
+          <td style="font-size:0.82rem;color:#6B5B85">User #{{ f.user_id }}</td>
+          <td><span class="badge {% if f.upload_status == 'processed' %}badge-green{% elif f.upload_status == 'error' %}badge-red{% else %}badge-yellow{% endif %}">{{ f.upload_status }}</span></td>
+          <td style="font-size:0.82rem;color:#6B5B85">{{ f.created_at.strftime('%b %d, %Y') }}</td>
+          <td><button onclick="deleteAdminFile({{ f.id }})" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

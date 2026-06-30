@@ -1,0 +1,58 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Users - Admin{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block page_subtitle %}{{ users|length }} total users{% endblock %}
+{% block content %}
+<div class="admin-search">
+  <form method="GET">
+    <input type="text" name="q" class="form-control" placeholder="Search by name or email..." value="{{ search }}" style="max-width:320px">
+    <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-search"></i> Search</button>
+    {% if search %}<a href="{{ url_for('admin.users') }}" class="btn btn-ghost btn-sm">Clear</a>{% endif %}
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="admin-table">
+      <thead>
+        <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Chats</th><th>Files</th><th>Joined</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr id="user-row-{{ u.id }}">
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;background:linear-gradient(135deg,#7C3AED,#A78BFA);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:0.85rem;font-weight:600;flex-shrink:0">{{ u.name[0].upper() }}</div>
+              <span style="font-weight:500">{{ u.name }}</span>
+            </div>
+          </td>
+          <td style="font-size:0.85rem;color:#6B5B85">{{ u.email }}</td>
+          <td>
+            <select onchange="changeUserRole({{ u.id }}, this)" class="form-control" style="width:100px;padding:5px 8px;font-size:0.8rem" {% if u.id == current_user.id %}disabled{% endif %}>
+              <option value="user" {% if u.role == 'user' %}selected{% endif %}>User</option>
+              <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+            </select>
+          </td>
+          <td><span class="badge {% if u.is_active %}badge-green{% else %}badge-red{% endif %}" id="status-badge-{{ u.id }}">{{ 'Active' if u.is_active else 'Disabled' }}</span></td>
+          <td>{{ user_stats[u.id].chats }}</td>
+          <td>{{ user_stats[u.id].files }}</td>
+          <td style="font-size:0.82rem;color:#6B5B85">{{ u.created_at.strftime('%b %d, %Y') }}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              {% if u.id != current_user.id %}
+              <button onclick="toggleUserStatus({{ u.id }}, this)" class="btn btn-sm {% if u.is_active %}btn-ghost{% else %}btn-success{% endif %}">
+                {{ 'Disable' if u.is_active else 'Enable' }}
+              </button>
+              <button onclick="deleteUser({{ u.id }})" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+              {% else %}
+              <span style="font-size:0.78rem;color:#B5A9D4">You</span>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

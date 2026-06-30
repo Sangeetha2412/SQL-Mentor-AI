@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Chat - SQL Mentor AI{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="chat-layout">
+  <!-- Sidebar -->
+  <aside class="chat-sidebar" id="chat-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon"><i class="fa-solid fa-database"></i></div>
+        <span class="sidebar-logo-text">SQL Mentor AI</span>
+      </div>
+      <button class="btn-new-chat" id="new-chat-btn"><i class="fa-solid fa-plus"></i> New Chat</button>
+    </div>
+
+    <div class="sidebar-search">
+      <div class="search-input-wrapper">
+        <i class="search-icon fa-solid fa-magnifying-glass"></i>
+        <input type="text" class="search-input" id="sidebar-search" placeholder="Search chats...">
+      </div>
+    </div>
+
+    <div class="sidebar-history">
+      <div class="history-section-label">Conversations</div>
+      <div id="chat-history-list">
+        {% for chat in chats %}
+        <div class="chat-history-item" data-chat-id="{{ chat.id }}" onclick="loadChat({{ chat.id }})">
+          <i class="fa-regular fa-message chat-history-icon"></i>
+          <span class="chat-history-title">{{ chat.title }}</span>
+          <div class="chat-item-actions">
+            <button class="chat-action-btn" onclick="renameChat({{ chat.id }}, event)" title="Rename"><i class="fa-solid fa-pencil"></i></button>
+            <button class="chat-action-btn" onclick="deleteChat({{ chat.id }}, event)" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-profile-mini">
+        <div class="user-avatar">{{ current_user.name[0].upper() }}</div>
+        <div>
+          <div class="user-name-mini">{{ current_user.name }}</div>
+          <div class="user-role-mini">{{ current_user.role.capitalize() }}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;padding:4px 10px">
+        <a href="{{ url_for('main_dashboard') }}" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center"><i class="fa-solid fa-house"></i></a>
+        <a href="{{ url_for('upload_page') }}" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center"><i class="fa-solid fa-upload"></i></a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center"><i class="fa-solid fa-right-from-bracket"></i></a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Chat -->
+  <main class="chat-main">
+    <div class="chat-topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+        <span class="chat-title-display" id="chat-title-display">SQL Mentor AI</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <a href="{{ url_for('upload_page') }}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-upload"></i> Upload</a>
+        <a href="{{ url_for('main_dashboard') }}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-house"></i></a>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <!-- Welcome Screen -->
+      <div class="chat-welcome" id="welcome-screen">
+        <div class="welcome-icon"><i class="fa-solid fa-database"></i></div>
+        <h1 class="welcome-title">SQL Mentor AI</h1>
+        <p class="welcome-subtitle">Ask SQL questions, analyze files, generate queries, and explore your databases with AI assistance.</p>
+
+        <div class="quick-actions">
+          <div class="quick-action-card" data-prompt="Explain INNER JOIN vs LEFT JOIN with examples">
+            <div class="qa-icon">📖</div>
+            <div class="qa-title">Explain SQL Concepts</div>
+            <div class="qa-desc">JOINs, CTEs, Window Functions</div>
+          </div>
+          <div class="quick-action-card" data-prompt="Write a SQL query to find duplicate email addresses in a users table">
+            <div class="qa-icon">✏️</div>
+            <div class="qa-title">Generate SQL Query</div>
+            <div class="qa-desc">Describe what you need</div>
+          </div>
+          <div class="quick-action-card" data-prompt="Analyze my uploaded file and show missing values and column statistics">
+            <div class="qa-icon">📊</div>
+            <div class="qa-title">Analyze Uploaded File</div>
+            <div class="qa-desc">CSV, Excel, JSON, PDF</div>
+          </div>
+          <div class="quick-action-card" data-prompt="Help me optimize this slow SQL query and explain what indexes I should add">
+            <div class="qa-icon">⚡</div>
+            <div class="qa-title">Optimize Queries</div>
+            <div class="qa-desc">Performance & indexing</div>
+          </div>
+        </div>
+
+        <div class="quick-prompts">
+          <button class="quick-prompt-btn" data-prompt="Explain INNER JOIN">Explain INNER JOIN</button>
+          <button class="quick-prompt-btn" data-prompt="Write a SQL query to find duplicates">Find Duplicates</button>
+          <button class="quick-prompt-btn" data-prompt="What are SQL window functions?">Window Functions</button>
+          <button class="quick-prompt-btn" data-prompt="Explain database normalization">Normalization</button>
+          <button class="quick-prompt-btn" data-prompt="How do SQL indexes work?">SQL Indexes</button>
+          <button class="quick-prompt-btn" data-prompt="Write a complex SQL with CTEs">Write CTE Query</button>
+          <button class="quick-prompt-btn" data-prompt="Explain GROUP BY and HAVING">GROUP BY & HAVING</button>
+          <button class="quick-prompt-btn" data-prompt="What is the difference between MySQL and PostgreSQL?">MySQL vs PostgreSQL</button>
+        </div>
+      </div>
+
+      <!-- Typing indicator (hidden by default) -->
+      <div class="message-row assistant" id="typing-indicator" style="display:none">
+        <div class="msg-avatar ai-av"><i class="fa-solid fa-robot"></i></div>
+        <div class="msg-content">
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- File chips -->
+    <div class="file-chips-bar" id="file-chips-bar"></div>
+
+    <!-- Input area -->
+    <div class="chat-input-area">
+      <div class="chat-input-wrapper">
+        <div style="position:relative;flex-shrink:0">
+          <button class="input-action-btn" id="file-attach-btn" title="Attach files">
+            <i class="fa-solid fa-paperclip"></i>
+          </button>
+          <!-- File picker dropdown -->
+          <div class="file-picker-dropdown" id="file-picker-dropdown">
+            {% if user_files %}
+              <div style="padding:10px 14px;border-bottom:1px solid #E9E2FF;font-size:0.8rem;font-weight:600;color:#6B5B85">Select files to analyze</div>
+              {% for f in user_files %}
+              <div class="file-picker-item">
+                <input type="checkbox" id="fp-{{ f.id }}" data-file-id="{{ f.id }}" onchange="toggleFileSelection({{ f.id }}, '{{ f.original_filename }}', this)">
+                <label for="fp-{{ f.id }}" style="cursor:pointer;flex:1">
+                  <div style="font-size:0.83rem;font-weight:500">{{ f.original_filename[:40] }}</div>
+                  <div style="font-size:0.72rem;color:#6B5B85">{{ f.file_type.upper() }}</div>
+                </label>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div style="padding:16px;text-align:center;font-size:0.85rem;color:#6B5B85">
+                No processed files yet.<br><a href="{{ url_for('upload_page') }}" style="color:#7C3AED">Upload files</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <textarea id="chat-input" placeholder="Ask anything about SQL, or about your uploaded files..." rows="1"></textarea>
+        <div class="input-actions">
+          <button class="send-btn" id="send-btn" title="Send (Enter)">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:0.72rem;color:#B5A9D4;margin-top:8px">
+        SQL Mentor AI can make mistakes. Always verify important queries before running on production databases.
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  window.USER_NAME = "{{ current_user.name }}";
+  window.USER_FILES = {{ user_files|tojson|safe }};
+  // Build the file list for chip rendering
+  window.USER_FILES = [
+    {% for f in user_files %}
+    { id: {{ f.id }}, name: "{{ f.original_filename }}", type: "{{ f.file_type }}" },
+    {% endfor %}
+  ];
+</script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

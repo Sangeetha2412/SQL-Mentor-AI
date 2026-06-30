@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Visualizations - {{ file.original_filename }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+  <aside class="app-sidebar">
+    <div class="app-sidebar-header">
+      <a href="{{ url_for('main_dashboard') }}" class="app-logo">
+        <div class="app-logo-icon"><i class="fa-solid fa-database"></i></div>
+        <span class="app-logo-text">SQL Mentor AI</span>
+      </a>
+    </div>
+    <nav class="app-nav">
+      <a href="{{ url_for('main_dashboard') }}" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="{{ url_for('chat_page') }}" class="nav-item"><i class="fa-solid fa-comments"></i> AI Chat</a>
+      <a href="{{ url_for('upload_page') }}" class="nav-item"><i class="fa-solid fa-upload"></i> Upload Files</a>
+    </nav>
+  </aside>
+
+  <main class="app-main">
+    <div class="app-topbar">
+      <div><div class="page-title">📊 {{ file.original_filename }}</div><div class="page-subtitle">Chart Builder</div></div>
+      <div class="topbar-actions">
+        <a href="{{ url_for('data_explorer', file_id=file.id) }}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-table"></i> Explorer</a>
+      </div>
+    </div>
+
+    <div class="app-content">
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:24px">
+
+        <!-- Builder Panel -->
+        <div>
+          <div class="chart-builder">
+            <h3 style="font-size:1rem;margin-bottom:16px">Chart Builder</h3>
+
+            <!-- Chart Type -->
+            <div class="form-group">
+              <label class="form-label">Chart Type</label>
+              <div class="chart-type-grid">
+                {% for t, icon, label in [('bar','📊','Bar'),('horizontal_bar','📉','H-Bar'),('line','📈','Line'),('pie','🥧','Pie'),('doughnut','🍩','Donut'),('area','🏔️','Area'),('scatter','⚡','Scatter'),('histogram','📶','Histogram')] %}
+                <div class="chart-type-btn {% if t == 'bar' %}selected{% endif %}" data-type="{{ t }}">
+                  <div class="chart-type-icon">{{ icon }}</div>
+                  <div class="chart-type-label">{{ label }}</div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Columns -->
+            <div class="form-group">
+              <label class="form-label">X-Axis Column <span style="color:#EF4444">*</span></label>
+              <select class="form-control" id="x-column">
+                <option value="">Select column...</option>
+                {% for col in metadata.get('columns', []) %}
+                <option value="{{ col }}">{{ col }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Y-Axis Column (optional)</label>
+              <select class="form-control" id="y-column">
+                <option value="">Count (default)</option>
+                {% for col in metadata.get('columns', []) %}
+                <option value="{{ col }}">{{ col }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Aggregation</label>
+              <select class="form-control" id="aggregation">
+                <option value="count">Count</option>
+                <option value="sum">Sum</option>
+                <option value="average">Average</option>
+                <option value="min">Minimum</option>
+                <option value="max">Maximum</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary" id="generate-chart-btn" style="width:100%">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Chart
+            </button>
+          </div>
+        </div>
+
+        <!-- Chart Display -->
+        <div>
+          <div class="chart-canvas-wrap">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <h3 style="font-size:1rem">Chart Preview</h3>
+              <div id="chart-actions" style="display:none;gap:8px">
+                <button class="btn btn-secondary btn-sm" id="save-chart-btn"><i class="fa-regular fa-bookmark"></i> Save</button>
+                <button class="btn btn-ghost btn-sm" id="download-chart-btn"><i class="fa-solid fa-download"></i> PNG</button>
+              </div>
+            </div>
+            <div style="flex:1;position:relative;min-height:350px;display:flex;align-items:center;justify-content:center" id="chart-placeholder">
+              <div style="text-align:center;color:#B5A9D4">
+                <i class="fa-solid fa-chart-bar" style="font-size:3rem;margin-bottom:12px;display:block"></i>
+                Select columns and click Generate Chart
+              </div>
+            </div>
+            <canvas id="chart-canvas" style="display:none;max-height:400px"></canvas>
+            <div id="chart-insight" style="display:none" class="chart-insight"></div>
+          </div>
+
+          <!-- Saved Charts -->
+          {% if saved_charts %}
+          <div class="card mt-24">
+            <div class="card-header"><h3 style="font-size:0.95rem">Saved Charts ({{ saved_charts|length }})</h3></div>
+            <div class="card-body">
+              <div class="saved-charts-grid">
+                {% for chart in saved_charts %}
+                <div class="saved-chart-card" id="saved-chart-{{ chart.id }}">
+                  <div style="font-size:1.5rem;margin-bottom:8px">📊</div>
+                  <div style="font-size:0.875rem;font-weight:600;margin-bottom:4px">{{ chart.title }}</div>
+                  <div style="font-size:0.75rem;color:#6B5B85;margin-bottom:10px">{{ chart.chart_type.replace('_',' ').title() }} · {{ chart.created_at.strftime('%b %d') }}</div>
+                  <div style="display:flex;gap:6px">
+                    <button class="btn btn-secondary btn-sm" style="flex:1" onclick="loadSavedChart({{ chart.id }}, {{ chart.chart_config_json|tojson }})">Load</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteSavedChart({{ chart.id }})"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+window.FILE_ID = {{ file.id }};
+document.getElementById('chart-placeholder')?.style;
+document.getElementById('generate-chart-btn')?.addEventListener('click', function() {
+  document.getElementById('chart-placeholder').style.display = 'none';
+  document.getElementById('chart-canvas').style.display = 'block';
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

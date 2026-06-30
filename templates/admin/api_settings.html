@@ -1,0 +1,72 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}API Settings - Admin{% endblock %}
+{% block page_title %}AI Provider Settings{% endblock %}
+{% block page_subtitle %}Manage Groq API key securely{% endblock %}
+{% block content %}
+<div style="max-width:640px">
+  <!-- Current Key Status -->
+  <div class="card mb-24">
+    <div class="card-header"><h3 style="font-size:0.95rem">Current API Key</h3></div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+        <div>
+          <div style="font-size:0.82rem;color:#6B5B85;margin-bottom:6px">Stored Key</div>
+          <div class="api-key-display">{{ masked_key or 'No key configured' }}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="key-status-badge {% if masked_key %}key-status-active{% else %}key-status-missing{% endif %}">
+          <span class="status-dot {% if masked_key %}green{% else %}gray{% endif %}"></span>
+          {{ 'Key Configured' if masked_key else 'No Key Set' }}
+        </span>
+        {% if last_updated %}
+        <span style="font-size:0.78rem;color:#6B5B85">Last updated: {{ last_updated.strftime('%b %d, %Y %H:%M') }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Key -->
+  <div class="card mb-24">
+    <div class="card-header"><h3 style="font-size:0.95rem">Update Groq API Key</h3></div>
+    <div class="card-body">
+      <div class="form-group">
+        <label class="form-label">New API Key</label>
+        <input type="password" id="new-api-key" class="form-control no-icon" placeholder="gsk_..." autocomplete="off">
+        <span style="font-size:0.78rem;color:#6B5B85">Get your key from <a href="https://console.groq.com" target="_blank">console.groq.com</a></span>
+      </div>
+      <div id="test-result" style="display:none" class="alert mb-16"></div>
+      <div style="display:flex;gap:10px">
+        <button id="test-key-btn" class="btn btn-ghost">Test Key</button>
+        <button id="save-key-btn" class="btn btn-primary">Save API Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Card -->
+  <div class="card">
+    <div class="card-header"><h3 style="font-size:0.95rem">How It Works</h3></div>
+    <div class="card-body">
+      <div class="alert alert-info"><i class="fa-solid fa-shield-halved"></i> API keys are encrypted using Fernet symmetric encryption before being stored in the database. The key is never logged or exposed.</div>
+      <div style="font-size:0.875rem;color:#6B5B85;line-height:1.8">
+        <p><strong>Priority:</strong> Database key (set here) → .env GROQ_API_KEY</p>
+        <p><strong>Model:</strong> llama-3.3-70b-versatile</p>
+        <p><strong>Rate limits:</strong> Depends on your Groq plan</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay confirm-modal" id="confirm-key-modal">
+  <div class="modal">
+    <div class="modal-icon warning"><i class="fa-solid fa-key"></i></div>
+    <h3 style="text-align:center;margin-bottom:8px">Replace API Key?</h3>
+    <p style="text-align:center;color:#6B5B85;font-size:0.875rem;margin-bottom:24px">This will replace the existing Groq API key. All users will use the new key immediately.</p>
+    <div style="display:flex;gap:10px">
+      <button onclick="hideModal('confirm-key-modal')" class="btn btn-ghost" style="flex:1">Cancel</button>
+      <button id="confirm-save-key" class="btn btn-primary" style="flex:1">Yes, Save Key</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

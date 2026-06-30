@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Upload Files - SQL Mentor AI{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+  <aside class="app-sidebar">
+    <div class="app-sidebar-header">
+      <a href="{{ url_for('main_dashboard') }}" class="app-logo">
+        <div class="app-logo-icon"><i class="fa-solid fa-database"></i></div>
+        <span class="app-logo-text">SQL Mentor AI</span>
+      </a>
+    </div>
+    <nav class="app-nav">
+      <a href="{{ url_for('main_dashboard') }}" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="{{ url_for('chat_page') }}" class="nav-item"><i class="fa-solid fa-comments"></i> AI Chat</a>
+      <a href="{{ url_for('upload_page') }}" class="nav-item active"><i class="fa-solid fa-upload"></i> Upload Files</a>
+      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+    <div class="app-sidebar-footer">
+      <div class="user-menu">
+        <div class="user-avatar">{{ current_user.name[0].upper() }}</div>
+        <div><div class="user-name-mini">{{ current_user.name }}</div><div class="user-role-mini">{{ current_user.role }}</div></div>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm btn-icon" style="margin-left:auto"><i class="fa-solid fa-right-from-bracket"></i></a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="app-main">
+    <div class="app-topbar">
+      <div><div class="page-title">Upload Files</div><div class="page-subtitle">Multi-Format Data Intelligence</div></div>
+    </div>
+    <div class="app-content">
+      <!-- Upload Zone -->
+      <div class="card mb-24">
+        <div class="card-body">
+          <div class="upload-zone" id="upload-zone">
+            <input type="file" id="file-input" multiple accept=".csv,.txt,.md,.pdf,.json,.xlsx,.xls,.sql,.db,.sqlite,.sqlite3">
+            <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <div class="upload-title">Drag & drop files here, or click to browse</div>
+            <div class="upload-subtitle">Max 50MB per file</div>
+            <div class="upload-types">
+              {% for ext in ['CSV','Excel','JSON','PDF','TXT','MD','SQL','SQLite'] %}
+              <span class="type-badge">.{{ ext.lower() }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="upload-progress" id="upload-progress">
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+            <div id="upload-status" style="font-size:0.82rem;color:#6B5B85">Uploading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Files List -->
+      <div class="section-header">
+        <h2>Your Files ({{ files|length }})</h2>
+      </div>
+
+      <div class="file-cards" id="file-cards">
+        {% for f in files %}
+        <div class="file-card" id="file-card-{{ f.id }}">
+          <div class="file-card-header">
+            <div class="file-type-icon" style="background:{% if f.file_type in ['csv','xlsx','xls'] %}#DCFCE7;color:#15803D{% elif f.file_type == 'pdf' %}#FEE2E2;color:#991B1B{% elif f.file_type in ['db','sqlite','sqlite3'] %}#DBEAFE;color:#1D4ED8{% elif f.file_type == 'sql' %}#FEF3C7;color:#92400E{% else %}#F5F1FF;color:#7C3AED{% endif %}">
+              <i class="fa-solid {% if f.file_type in ['csv','xlsx','xls'] %}fa-table{% elif f.file_type == 'pdf' %}fa-file-pdf{% elif f.file_type in ['db','sqlite','sqlite3'] %}fa-database{% elif f.file_type == 'sql' %}fa-code{% else %}fa-file-lines{% endif %}"></i>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div class="file-name truncate">{{ f.original_filename }}</div>
+              <div class="file-meta">{{ f.file_type.upper() }} · {{ format_size(f.file_size or 0) }} · {{ f.created_at.strftime('%b %d, %Y') }}</div>
+            </div>
+          </div>
+          <div>
+            <span class="badge {% if f.upload_status == 'processed' %}badge-green{% elif f.upload_status == 'error' %}badge-red{% else %}badge-yellow{% endif %}">
+              {{ f.upload_status.capitalize() }}
+            </span>
+          </div>
+          <div class="file-card-actions">
+            {% if f.file_type in ['csv','xlsx','xls','json','db','sqlite','sqlite3'] %}
+            <a href="{{ url_for('data_explorer', file_id=f.id) }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-table"></i> Explore</a>
+            {% endif %}
+            {% if f.file_type in ['csv','xlsx','xls','json'] %}
+            <a href="{{ url_for('visualizations', file_id=f.id) }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chart-bar"></i> Chart</a>
+            {% endif %}
+            <button class="btn btn-danger btn-sm" onclick="deleteFile({{ f.id }})"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+        {% endfor %}
+        {% if not files %}
+        <div style="grid-column:1/-1;text-align:center;padding:48px;color:#6B5B85">
+          <i class="fa-solid fa-folder-open" style="font-size:3rem;color:#DDD6FE;display:block;margin-bottom:12px"></i>
+          No files uploaded yet. Drop files above to get started!
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const zone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('file-input');
+
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); uploadFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', () => uploadFiles(fileInput.files));
+
+async function uploadFiles(files) {
+  for (const file of files) {
+    await uploadSingle(file);
+  }
+}
+
+async function uploadSingle(file) {
+  const progress = document.getElementById('upload-progress');
+  const bar = document.getElementById('progress-bar');
+  const status = document.getElementById('upload-status');
+  progress.style.display = 'block';
+  status.textContent = `Uploading ${file.name}...`;
+
+  // Animate bar
+  let w = 0;
+  const interval = setInterval(() => { w = Math.min(w + 10, 85); bar.style.width = w + '%'; }, 200);
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await fetch('/api/upload-file', { method: 'POST', body: formData });
+    const data = await res.json();
+    clearInterval(interval);
+    bar.style.width = '100%';
+
+    if (data.success) {
+      status.textContent = `✅ ${file.name} uploaded and processed`;
+      showToast(`${file.name} uploaded successfully!`, 'success');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      status.textContent = `❌ Error: ${data.error}`;
+      showToast(data.error, 'error');
+    }
+  } catch(e) {
+    clearInterval(interval);
+    status.textContent = '❌ Upload failed';
+    showToast('Upload failed: ' + e.message, 'error');
+  }
+}
+
+async function deleteFile(fileId) {
+  if (!confirm('Delete this file? This cannot be undone.')) return;
+  const res = await apiPost(`/api/delete-file/${fileId}`, {});
+  if (res.success) {
+    document.getElementById(`file-card-${fileId}`)?.remove();
+    showToast('File deleted', 'success');
+  } else showToast(res.error || 'Failed to delete', 'error');
+}
+</script>
+{% endblock %}

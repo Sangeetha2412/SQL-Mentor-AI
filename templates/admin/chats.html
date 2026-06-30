@@ -1,0 +1,33 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Chats - Admin{% endblock %}
+{% block page_title %}Chat Management{% endblock %}
+{% block page_subtitle %}{{ chats|length }} total chats{% endblock %}
+{% block content %}
+<div class="admin-search">
+  <form method="GET">
+    <input type="text" name="q" class="form-control" placeholder="Search chats..." value="{{ search }}" style="max-width:320px">
+    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    {% if search %}<a href="{{ url_for('admin.chats') }}" class="btn btn-ghost btn-sm">Clear</a>{% endif %}
+  </form>
+</div>
+<div class="alert alert-info"><i class="fa-solid fa-shield"></i> Message content is not displayed here to protect user privacy.</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table class="admin-table">
+      <thead><tr><th>Title</th><th>User</th><th>Messages</th><th>Created</th><th>Updated</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for c in chats %}
+        <tr id="chat-row-{{ c.id }}">
+          <td style="font-weight:500;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.title }}</td>
+          <td style="font-size:0.82rem;color:#6B5B85">User #{{ c.user_id }}</td>
+          <td><span class="badge badge-purple">{{ chat_stats[c.id] }}</span></td>
+          <td style="font-size:0.82rem;color:#6B5B85">{{ c.created_at.strftime('%b %d, %Y') }}</td>
+          <td style="font-size:0.82rem;color:#6B5B85">{{ c.updated_at.strftime('%b %d, %Y') }}</td>
+          <td><button onclick="deleteAdminChat({{ c.id }})" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

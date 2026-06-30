@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Profile - SQL Mentor AI{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+  <aside class="app-sidebar">
+    <div class="app-sidebar-header">
+      <a href="{{ url_for('main_dashboard') }}" class="app-logo">
+        <div class="app-logo-icon"><i class="fa-solid fa-database"></i></div>
+        <span class="app-logo-text">SQL Mentor AI</span>
+      </a>
+    </div>
+    <nav class="app-nav">
+      <a href="{{ url_for('main_dashboard') }}" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="{{ url_for('chat_page') }}" class="nav-item"><i class="fa-solid fa-comments"></i> AI Chat</a>
+      <a href="{{ url_for('upload_page') }}" class="nav-item"><i class="fa-solid fa-upload"></i> Upload Files</a>
+      <a href="{{ url_for('profile') }}" class="nav-item active"><i class="fa-solid fa-user"></i> Profile</a>
+    </nav>
+  </aside>
+
+  <main class="app-main">
+    <div class="app-topbar"><div class="page-title">My Profile</div></div>
+    <div class="app-content" style="max-width:640px">
+
+      <!-- Profile Card -->
+      <div class="card mb-24">
+        <div class="card-body" style="text-align:center;padding:40px">
+          <div style="width:80px;height:80px;background:linear-gradient(135deg,#7C3AED,#A78BFA);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;color:white;font-weight:700;margin-bottom:16px">
+            {{ current_user.name[0].upper() }}
+          </div>
+          <h2 style="font-size:1.4rem;margin-bottom:4px">{{ current_user.name }}</h2>
+          <p style="color:#6B5B85;margin-bottom:8px">{{ current_user.email }}</p>
+          <span class="badge {% if current_user.role == 'admin' %}badge-purple{% else %}badge-blue{% endif %}">
+            {{ current_user.role.capitalize() }}
+          </span>
+          <div style="margin-top:16px;font-size:0.82rem;color:#6B5B85">
+            Member since {{ current_user.created_at.strftime('%B %Y') }}
+            {% if current_user.last_login %}· Last login {{ current_user.last_login.strftime('%b %d, %Y') }}{% endif %}
+          </div>
+          {% if current_user.google_id %}
+          <div style="margin-top:10px"><span class="badge badge-blue"><i class="fa-brands fa-google"></i> Google Account</span></div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Update Profile -->
+      <div class="card mb-24">
+        <div class="card-header"><h3 style="font-size:0.95rem">Update Profile</h3></div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('profile_update') }}">
+            <div class="form-group">
+              <label class="form-label">Display Name</label>
+              <input type="text" name="name" class="form-control no-icon" value="{{ current_user.name }}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-control no-icon" value="{{ current_user.email }}" disabled style="background:#F5F1FF;cursor:not-allowed">
+              <span style="font-size:0.78rem;color:#6B5B85">Email cannot be changed</span>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Change Password -->
+      {% if current_user.password_hash %}
+      <div class="card">
+        <div class="card-header"><h3 style="font-size:0.95rem">Change Password</h3></div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('change_password') }}">
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input type="password" name="current_password" class="form-control no-icon" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input type="password" name="new_password" class="form-control no-icon" placeholder="Min 8 characters" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" name="confirm_password" class="form-control no-icon" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Password</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

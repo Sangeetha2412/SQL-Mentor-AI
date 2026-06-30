@@ -1,0 +1,46 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Admin Dashboard - SQL Mentor AI{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_subtitle %}Overview of SQL Mentor AI{% endblock %}
+{% block content %}
+<div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+  <div class="stat-card"><div class="stat-icon stat-icon-purple"><i class="fa-solid fa-users"></i></div><div><div class="stat-value">{{ total_users }}</div><div class="stat-label">Total Users</div></div></div>
+  <div class="stat-card"><div class="stat-icon stat-icon-green"><i class="fa-solid fa-user-check"></i></div><div><div class="stat-value">{{ active_users }}</div><div class="stat-label">Active Users</div></div></div>
+  <div class="stat-card"><div class="stat-icon stat-icon-blue"><i class="fa-solid fa-comments"></i></div><div><div class="stat-value">{{ total_chats }}</div><div class="stat-label">Total Chats</div></div></div>
+  <div class="stat-card"><div class="stat-icon stat-icon-pink"><i class="fa-solid fa-file"></i></div><div><div class="stat-value">{{ total_files }}</div><div class="stat-label">Uploaded Files</div></div></div>
+  <div class="stat-card"><div class="stat-icon stat-icon-purple"><i class="fa-solid fa-hard-drive"></i></div><div><div class="stat-value">{{ total_storage }}</div><div class="stat-label">Storage Used</div></div></div>
+  <div class="stat-card"><div class="stat-icon stat-icon-blue"><i class="fa-solid fa-robot"></i></div><div><div class="stat-value">{{ total_api }}</div><div class="stat-label">API Calls</div></div></div>
+  <div class="stat-card"><div class="stat-icon stat-icon-pink"><i class="fa-solid fa-triangle-exclamation"></i></div><div><div class="stat-value">{{ failed_api }}</div><div class="stat-label">Failed Calls</div></div></div>
+  <div class="stat-card">
+    <div class="stat-icon {% if groq_status == 'configured' %}stat-icon-green{% else %}stat-icon-pink{% endif %}"><i class="fa-solid fa-key"></i></div>
+    <div><div class="stat-value" style="font-size:1rem">{{ groq_status.capitalize() }}</div><div class="stat-label">Groq API Key</div></div>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card">
+    <div class="card-header"><h3 style="font-size:0.95rem">Recent Users</h3><a href="{{ url_for('admin.users') }}" class="btn btn-ghost btn-sm">View All</a></div>
+    <div class="card-body">
+      {% for u in recent_users %}
+      <div class="recent-item">
+        <div class="user-avatar" style="width:36px;height:36px;background:linear-gradient(135deg,#7C3AED,#A78BFA);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:0.85rem;font-weight:600">{{ u.name[0].upper() }}</div>
+        <div class="recent-info"><div class="recent-title">{{ u.name }}</div><div class="recent-meta">{{ u.email }} · {{ u.role }}</div></div>
+        <span class="badge {% if u.is_active %}badge-green{% else %}badge-red{% endif %}">{{ 'Active' if u.is_active else 'Disabled' }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3 style="font-size:0.95rem">Recent Files</h3><a href="{{ url_for('admin.files') }}" class="btn btn-ghost btn-sm">View All</a></div>
+    <div class="card-body">
+      {% for f in recent_files %}
+      <div class="recent-item">
+        <div class="recent-icon" style="background:#EDE9FE;color:#7C3AED"><i class="fa-solid fa-file"></i></div>
+        <div class="recent-info"><div class="recent-title truncate" style="max-width:200px">{{ f.original_filename }}</div><div class="recent-meta">{{ f.file_type.upper() }} · User #{{ f.user_id }}</div></div>
+        <span class="badge {% if f.upload_status == 'processed' %}badge-green{% else %}badge-red{% endif %}">{{ f.upload_status }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

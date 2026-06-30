@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Login - SQL Mentor AI{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">{% endblock %}
+
+{% block body %}
+<canvas id="three-canvas"></canvas>
+<div class="auth-overlay"></div>
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><i class="fa-solid fa-database"></i></div>
+        <div class="auth-title">Welcome Back</div>
+        <div class="auth-subtitle">Sign in to SQL Mentor AI</div>
+      </div>
+
+      <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-wrapper">
+            <i class="input-icon fa-solid fa-envelope"></i>
+            <input type="email" name="email" class="form-control" placeholder="you@example.com" value="{{ email|default('') }}" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper">
+            <i class="input-icon fa-solid fa-lock"></i>
+            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-auth"><i class="fa-solid fa-right-to-bracket"></i> Sign In</button>
+      </form>
+
+      {% if config.GOOGLE_CLIENT_ID %}
+      <div class="divider">or continue with</div>
+      <a href="{{ url_for('auth.google_login') }}" class="btn-google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+        Continue with Google
+      </a>
+      {% endif %}
+
+      <div class="auth-footer">
+        Don't have an account? <a href="{{ url_for('auth.signup') }}">Create one free</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="{{ url_for('static', filename='js/three-background.js') }}"></script>
+{% endblock %}

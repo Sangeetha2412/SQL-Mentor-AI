@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Data Explorer - {{ file.original_filename }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/data-explorer.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+  <aside class="app-sidebar">
+    <div class="app-sidebar-header">
+      <a href="{{ url_for('main_dashboard') }}" class="app-logo">
+        <div class="app-logo-icon"><i class="fa-solid fa-database"></i></div>
+        <span class="app-logo-text">SQL Mentor AI</span>
+      </a>
+    </div>
+    <nav class="app-nav">
+      <a href="{{ url_for('main_dashboard') }}" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="{{ url_for('chat_page') }}" class="nav-item"><i class="fa-solid fa-comments"></i> AI Chat</a>
+      <a href="{{ url_for('upload_page') }}" class="nav-item"><i class="fa-solid fa-upload"></i> Upload Files</a>
+    </nav>
+  </aside>
+
+  <main class="app-main">
+    <div class="app-topbar">
+      <div>
+        <div class="page-title">📊 {{ file.original_filename }}</div>
+        <div class="page-subtitle">Data Explorer · {{ file.file_type.upper() }}</div>
+      </div>
+      <div class="topbar-actions">
+        {% if file.file_type in ['csv','xlsx','xls','json'] %}
+        <a href="{{ url_for('visualizations', file_id=file.id) }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chart-bar"></i> Visualize</a>
+        {% endif %}
+        <a href="{{ url_for('upload_page') }}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i> Back</a>
+      </div>
+    </div>
+
+    <div class="app-content">
+      <!-- Overview Cards -->
+      <div class="dataset-overview">
+        <div class="overview-card"><div class="overview-value">{{ metadata.get('total_rows', metadata.get('total_tables', '—')) }}</div><div class="overview-label">{{ 'Tables' if file.file_type in ['db','sqlite','sqlite3'] else 'Rows' }}</div></div>
+        <div class="overview-card"><div class="overview-value">{{ metadata.get('total_columns', metadata.get('page_count', '—')) }}</div><div class="overview-label">{{ 'Pages' if file.file_type == 'pdf' else 'Columns' }}</div></div>
+        <div class="overview-card"><div class="overview-value">{{ metadata.get('missing_values', '—') }}</div><div class="overview-label">Missing Values</div></div>
+        <div class="overview-card"><div class="overview-value">{{ metadata.get('duplicate_rows', '—') }}</div><div class="overview-label">Duplicates</div></div>
+        <div class="overview-card"><div class="overview-value">{{ format_size(file.file_size or 0) }}</div><div class="overview-label">File Size</div></div>
+      </div>
+
+      {% if file.file_type in ['db','sqlite','sqlite3'] %}
+      <!-- SQLite Explorer -->
+      <div class="explorer-layout">
+        <div>
+          <div class="schema-panel">
+            <div class="card-header"><h3 style="font-size:0.9rem">Tables</h3></div>
+            <div class="schema-table-list">
+              {% for table_name, table_info in metadata.get('tables', {}).items() %}
+              <div class="schema-table-item" data-table="{{ table_name }}" onclick="selectTable('{{ table_name }}', this)">
+                <i class="fa-solid fa-table"></i> {{ table_name }}
+                <span class="badge badge-purple" style="margin-left:auto;font-size:0.65rem">{{ table_info.row_count }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card mb-16">
+            <div class="card-header"><h3 style="font-size:0.9rem">SQL Query Runner</h3><span class="badge badge-yellow">SELECT only</span></div>
+            <div class="card-body">
+              <textarea class="sql-editor" id="sql-editor" rows="4" placeholder="SELECT * FROM table_name LIMIT 50"></textarea>
+              <div style="display:flex;gap:10px;margin-top:10px">
+                <button class="btn btn-primary" id="run-query-btn"><i class="fa-solid fa-play"></i> Run Query</button>
+                <button class="btn btn-ghost btn-sm" onclick="document.getElementById('sql-editor').value=''">Clear</button>
+              </div>
+            </div>
+          </div>
+          <div id="query-result"></div>
+        </div>
+      </div>
+
+      {% elif file.file_type in ['csv','xlsx','xls','json'] %}
+      <!-- Tabular Data Explorer -->
+      <div class="card">
+        <div class="card-header">
+          <div class="explorer-controls" style="margin:0">
+            <input type="text" class="form-control" id="search-input" placeholder="🔍 Search all columns..." style="max-width:280px">
+            <span id="row-count" style="font-size:0.82rem;color:#6B5B85;margin-left:auto"></span>
+            <button class="btn btn-ghost btn-sm" id="download-csv-btn"><i class="fa-solid fa-download"></i> Export CSV</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead id="data-thead"></thead>
+            <tbody id="data-tbody"><tr><td style="text-align:center;padding:24px;color:#6B5B85">Loading data...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="pagination" class="pagination"></div>
+      </div>
+
+      {% elif file.file_type == 'sql' %}
+      <!-- SQL File Schema -->
+      <div class="card">
+        <div class="card-header"><h3 style="font-size:0.95rem">SQL Schema Analysis</h3></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+            <div class="overview-card"><div class="overview-value">{{ metadata.get('create_statements',0) }}</div><div class="overview-label">CREATE Stmts</div></div>
+            <div class="overview-card"><div class="overview-value">{{ metadata.get('insert_statements',0) }}</div><div class="overview-label">INSERT Stmts</div></div>
+            <div class="overview-card"><div class="overview-value">{{ metadata.get('select_statements',0) }}</div><div class="overview-label">SELECT Stmts</div></div>
+            <div class="overview-card"><div class="overview-value">{{ metadata.get('tables',{})|length }}</div><div class="overview-label">Tables Found</div></div>
+          </div>
+          {% for tname, tinfo in metadata.get('tables',{}).items() %}
+          <div class="card mb-16">
+            <div class="card-header"><h4>{{ tname }}</h4></div>
+            <div class="card-body" style="padding:12px">
+              <table class="data-table">
+                <thead><tr><th>Column</th><th>Type</th></tr></thead>
+                <tbody>
+                  {% for col in tinfo.get('columns',[]) %}
+                  <tr><td>{{ col.name }}</td><td><code>{{ col.type }}</code></td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% else %}
+      <!-- Text/PDF Preview -->
+      <div class="card">
+        <div class="card-header"><h3 style="font-size:0.95rem">File Preview</h3></div>
+        <div class="card-body">
+          <pre style="background:#F5F1FF;padding:20px;border-radius:10px;overflow:auto;max-height:500px;font-size:0.85rem;color:#1F1638;white-space:pre-wrap">{{ metadata.get('preview_text','No preview available') }}</pre>
+          <div style="margin-top:12px;font-size:0.85rem;color:#6B5B85">
+            Words: {{ metadata.get('total_words','—') }} · Characters: {{ metadata.get('total_chars','—') }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+
+<script>
+window.FILE_ID = {{ file.id }};
+
+function selectTable(tableName, el) {
+  document.querySelectorAll('.schema-table-item').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  const editor = document.getElementById('sql-editor');
+  if (editor) editor.value = `SELECT * FROM "${tableName}" LIMIT 50`;
+}
+</script>
+<script src="{{ url_for('static', filename='js/data-explorer.js') }}"></script>
+{% endblock %}

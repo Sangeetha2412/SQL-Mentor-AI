@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}SQL Mentor AI - AI-Powered SQL Learning Platform{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block body %}
+<canvas id="three-canvas"></canvas>
+<div class="auth-overlay"></div>
+
+<div class="landing-page">
+  <div class="landing-content">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <div class="logo-icon"><i class="fa-solid fa-database"></i></div>
+        SQL Mentor AI
+      </div>
+      <div class="navbar-nav">
+        <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-sm">Login</a>
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-primary btn-sm">Get Started Free</a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero-section">
+      <div class="hero-inner">
+        <div class="hero-badge"><i class="fa-solid fa-sparkles"></i> AI-Powered SQL Platform</div>
+        <h1 class="hero-title">
+          Master SQL with<br>
+          <span class="gradient-text">AI Intelligence</span>
+        </h1>
+        <p class="hero-subtitle">
+          Ask SQL questions, analyze your data files, generate optimized queries, explore databases, and create stunning visualizations — all in one place.
+        </p>
+        <div class="hero-buttons">
+          <a href="{{ url_for('auth.signup') }}" class="btn-hero-primary">
+            <i class="fa-solid fa-rocket"></i> Start Learning Free
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn-hero-secondary">
+            <i class="fa-regular fa-circle-play"></i> Sign In
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features-section">
+      <h2 class="section-title">Everything You Need for SQL Mastery</h2>
+      <p class="section-subtitle">A complete AI workspace for learning, analyzing, and visualizing SQL data</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-title">RAG-Powered SQL AI</div>
+          <div class="feature-desc">Ask anything about SQL. Get instant explanations, query generation, debugging help, and optimization tips powered by Groq LLaMA.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📁</div>
+          <div class="feature-title">Multi-Format File Analysis</div>
+          <div class="feature-desc">Upload CSV, Excel, JSON, PDF, TXT, SQL files, and SQLite databases. AI analyzes and answers questions about your data instantly.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗄️</div>
+          <div class="feature-title">Database Explorer</div>
+          <div class="feature-desc">Explore SQLite database schemas, preview tables, run safe SELECT queries, and understand relationships between your tables.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div class="feature-title">Smart Visualizations</div>
+          <div class="feature-desc">Generate bar charts, line charts, pie charts, scatter plots and more from your data with AI-powered chart suggestions.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔍</div>
+          <div class="feature-title">Data Explorer</div>
+          <div class="feature-desc">Browse, search, sort and filter your uploaded data in a beautiful table. Download filtered results as CSV instantly.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <div class="feature-title">Secure & Private</div>
+          <div class="feature-desc">Your files stay private. Per-user isolation in vector database ensures your data is never mixed with other users.</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="{{ url_for('static', filename='js/three-background.js') }}"></script>
+{% endblock %}

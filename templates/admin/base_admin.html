@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Admin - SQL Mentor AI{% endblock %}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+<div class="flash-container">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+  <div class="flash-msg flash-{{ category }}"><i class="fa-solid fa-info-circle"></i> {{ message }}</div>
+  {% endfor %}
+{% endwith %}
+</div>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-header">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div class="app-logo-icon" style="width:34px;height:34px;background:linear-gradient(135deg,#7C3AED,#A78BFA);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white">
+          <i class="fa-solid fa-database"></i>
+        </div>
+        <span style="font-size:1rem;font-weight:700;color:#7C3AED">SQL Mentor AI</span>
+      </div>
+      <div class="admin-badge">ADMIN PANEL</div>
+    </div>
+    <nav class="admin-nav">
+      <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+        <i class="fa-solid fa-gauge"></i> Dashboard
+      </a>
+      <a href="{{ url_for('admin.users') }}" class="admin-nav-item {% if request.endpoint == 'admin.users' %}active{% endif %}">
+        <i class="fa-solid fa-users"></i> Users
+      </a>
+      <a href="{{ url_for('admin.files') }}" class="admin-nav-item {% if request.endpoint == 'admin.files' %}active{% endif %}">
+        <i class="fa-solid fa-folder"></i> Files
+      </a>
+      <a href="{{ url_for('admin.chats') }}" class="admin-nav-item {% if request.endpoint == 'admin.chats' %}active{% endif %}">
+        <i class="fa-solid fa-comments"></i> Chats
+      </a>
+      <a href="{{ url_for('admin.api_settings') }}" class="admin-nav-item {% if request.endpoint == 'admin.api_settings' %}active{% endif %}">
+        <i class="fa-solid fa-key"></i> API Settings
+      </a>
+      <a href="{{ url_for('admin.analytics') }}" class="admin-nav-item {% if request.endpoint == 'admin.analytics' %}active{% endif %}">
+        <i class="fa-solid fa-chart-line"></i> Analytics
+      </a>
+      <a href="{{ url_for('admin.system_status') }}" class="admin-nav-item {% if request.endpoint == 'admin.system_status' %}active{% endif %}">
+        <i class="fa-solid fa-server"></i> System Status
+      </a>
+      <div style="border-top:1px solid #E9E2FF;margin:12px 0"></div>
+      <a href="{{ url_for('main_dashboard') }}" class="admin-nav-item"><i class="fa-solid fa-arrow-left"></i> User Dashboard</a>
+      <a href="{{ url_for('auth.logout') }}" class="admin-nav-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <div class="page-title">{% block page_title %}Admin{% endblock %}</div>
+        <div class="page-subtitle">{% block page_subtitle %}{% endblock %}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="user-avatar" style="width:34px;height:34px;background:linear-gradient(135deg,#7C3AED,#A78BFA);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:0.85rem;font-weight:600">
+          {{ current_user.name[0].upper() }}
+        </div>
+        <div style="font-size:0.85rem;font-weight:500">{{ current_user.name }}</div>
+      </div>
+    </div>
+    <div class="admin-content">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

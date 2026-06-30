@@ -1,0 +1,35 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Analytics - Admin{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+{% block page_subtitle %}Usage trends over the last 30 days{% endblock %}
+{% block extra_js %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+  <div class="card">
+    <div class="card-header"><h3 style="font-size:0.9rem">User Signups (30 days)</h3></div>
+    <div class="card-body"><canvas id="signup-chart" height="200"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3 style="font-size:0.9rem">File Types Distribution</h3></div>
+    <div class="card-body"><canvas id="filetype-chart" height="200"></canvas></div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header"><h3 style="font-size:0.9rem">API Usage (30 days)</h3></div>
+  <div class="card-body"><canvas id="api-chart" height="120"></canvas></div>
+</div>
+
+<script>
+const signupData = {{ signups | tojson }};
+const fileTypeData = {{ file_types | tojson }};
+const apiData = {{ api_logs | tojson }};
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderAdminCharts(
+    signupData.map(d => [d[0], d[1]]),
+    fileTypeData.map(d => [d[0], d[1]]),
+    apiData.map(d => [d[0], d[1]])
+  );
+});
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}System Status - Admin{% endblock %}
+{% block page_title %}System Status{% endblock %}
+{% block page_subtitle %}Real-time health of SQL Mentor AI{% endblock %}
+{% block content %}
+<div class="status-grid">
+  <!-- Groq API -->
+  <div class="status-card">
+    <div class="status-card-header">
+      <div class="status-card-title"><i class="fa-solid fa-robot" style="color:#7C3AED"></i> Groq API</div>
+      <span class="status-dot {% if groq_result.status == 'active' %}green{% elif groq_result.status == 'missing' %}gray{% else %}red{% endif %}"></span>
+    </div>
+    <div style="font-size:0.875rem;color:#6B5B85">{{ groq_result.message }}</div>
+    <div style="margin-top:8px">
+      <span class="badge {% if groq_result.status == 'active' %}badge-green{% elif groq_result.status == 'missing' %}badge-yellow{% else %}badge-red{% endif %}">
+        {{ groq_result.status.upper() }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ChromaDB -->
+  <div class="status-card">
+    <div class="status-card-header">
+      <div class="status-card-title"><i class="fa-solid fa-database" style="color:#7C3AED"></i> ChromaDB</div>
+      <span class="status-dot {% if chroma.status == 'connected' %}green{% else %}red{% endif %}"></span>
+    </div>
+    <div style="font-size:0.875rem;color:#6B5B85">{{ chroma.get('error', 'Vector database operational') }}</div>
+    <div style="margin-top:8px;font-size:0.82rem">
+      <div>Collections: <strong>{{ chroma.get('total_collections', 0) }}</strong></div>
+      <div>Documents: <strong>{{ chroma.get('total_documents', 0) }}</strong></div>
+    </div>
+  </div>
+
+  <!-- SQLite Database -->
+  <div class="status-card">
+    <div class="status-card-header">
+      <div class="status-card-title"><i class="fa-solid fa-server" style="color:#2563EB"></i> SQLite DB</div>
+      <span class="status-dot {% if db_status == 'connected' %}green{% else %}red{% endif %}"></span>
+    </div>
+    <div style="font-size:0.875rem;color:#6B5B85">{{ 'Database connected and healthy' if db_status == 'connected' else 'Database error' }}</div>
+    <span class="badge {% if db_status == 'connected' %}badge-green{% else %}badge-red{% endif %}">{{ db_status.upper() }}</span>
+  </div>
+
+  <!-- Disk Usage -->
+  <div class="status-card">
+    <div class="status-card-header">
+      <div class="status-card-title"><i class="fa-solid fa-hard-drive" style="color:#BE185D"></i> Storage</div>
+    </div>
+    <div style="font-size:0.875rem;color:#6B5B85">Upload storage usage</div>
+    <div style="margin-top:8px;font-size:0.82rem">
+      <div>Used: <strong>{{ disk_used }}</strong></div>
+      <div>Files on disk: <strong>{{ total_files_on_disk }}</strong></div>
+    </div>
+  </div>
+
+  <!-- Last Activity -->
+  <div class="status-card">
+    <div class="status-card-header">
+      <div class="status-card-title"><i class="fa-solid fa-clock" style="color:#F59E0B"></i> Last Activity</div>
+    </div>
+    <div style="font-size:0.875rem;color:#6B5B85">Last file ingestion</div>
+    <div style="margin-top:8px;font-size:0.85rem;font-weight:500">
+      {{ last_ingestion.strftime('%b %d, %Y %H:%M') if last_ingestion else 'No files yet' }}
+    </div>
+  </div>
+</div>
+{% endblock %}

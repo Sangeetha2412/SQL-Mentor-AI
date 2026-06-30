@@ -1,0 +1,114 @@
+/* data-explorer.css - Additional Data Explorer Styles */
+
+.column-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.col-stat-card {
+  background: var(--bg-lavender);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.col-stat-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-stat-type {
+  font-size: 0.72rem;
+  font-family: 'Fira Code', monospace;
+  background: var(--light-purple);
+  color: var(--primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.col-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.col-stat-row span:last-child { color: var(--text-main); font-weight: 500; }
+
+.null-bar {
+  height: 4px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.null-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* DB Schema sidebar */
+.db-schema-sidebar {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  height: fit-content;
+  position: sticky;
+  top: 80px;
+}
+
+.schema-table-columns { display: none; padding: 6px 0; }
+.schema-table-item.expanded .schema-table-columns { display: block; }
+
+.schema-col-item {
+  padding: 5px 12px 5px 28px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.schema-col-item .pk-badge {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+.schema-col-item .fk-badge {
+  background: var(--accent-blue);
+  color: #2563EB;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+}
+
+/* Query results */
+.query-result-wrap {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.query-result-header {
+  padding: 10px 16px;
+  background: var(--bg-lavender);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  font-weight: 500;
+}

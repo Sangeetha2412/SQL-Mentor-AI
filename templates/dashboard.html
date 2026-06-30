@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - SQL Mentor AI{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="app-sidebar">
+    <div class="app-sidebar-header">
+      <a href="{{ url_for('main_dashboard') }}" class="app-logo">
+        <div class="app-logo-icon"><i class="fa-solid fa-database"></i></div>
+        <span class="app-logo-text">SQL Mentor AI</span>
+      </a>
+    </div>
+    <nav class="app-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="{{ url_for('main_dashboard') }}" class="nav-item active"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="{{ url_for('chat_page') }}" class="nav-item"><i class="fa-solid fa-comments"></i> AI Chat</a>
+      <a href="{{ url_for('upload_page') }}" class="nav-item"><i class="fa-solid fa-upload"></i> Upload Files</a>
+      <div class="nav-section-label mt-16">Account</div>
+      <a href="{{ url_for('profile') }}" class="nav-item"><i class="fa-solid fa-user"></i> Profile</a>
+      {% if current_user.role == 'admin' %}
+      <a href="{{ url_for('admin.dashboard') }}" class="nav-item"><i class="fa-solid fa-shield"></i> Admin Panel</a>
+      {% endif %}
+    </nav>
+    <div class="app-sidebar-footer">
+      <div class="user-menu">
+        <div class="user-avatar">{{ current_user.name[0].upper() }}</div>
+        <div>
+          <div class="user-name-mini">{{ current_user.name }}</div>
+          <div class="user-role-mini">{{ current_user.role.capitalize() }}</div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm btn-icon ml-auto" title="Logout" style="margin-left:auto">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="app-main">
+    <div class="app-topbar">
+      <div>
+        <div class="page-title">Welcome back, {{ current_user.name.split()[0] }}! 👋</div>
+        <div class="page-subtitle">Here's your SQL learning overview</div>
+      </div>
+      <div class="topbar-actions">
+        <a href="{{ url_for('chat_page') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> New Chat</a>
+      </div>
+    </div>
+
+    <div class="app-content">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-comments"></i></div>
+          <div><div class="stat-value">{{ total_chats }}</div><div class="stat-label">Total Chats</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-file-lines"></i></div>
+          <div><div class="stat-value">{{ total_files }}</div><div class="stat-label">Uploaded Files</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-pink"><i class="fa-solid fa-chart-bar"></i></div>
+          <div><div class="stat-value">{{ total_charts }}</div><div class="stat-label">Saved Charts</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-green"><i class="fa-solid fa-star"></i></div>
+          <div><div class="stat-value">{{ current_user.role.capitalize() }}</div><div class="stat-label">Account Type</div></div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card mb-24">
+        <div class="card-header"><h2 style="font-size:1rem">Quick Actions</h2></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px">
+            <a href="{{ url_for('chat_page') }}" class="quick-action-card" style="text-decoration:none;display:block">
+              <div class="qa-icon">🤖</div><div class="qa-title">Ask SQL AI</div><div class="qa-desc">Chat with AI tutor</div>
+            </a>
+            <a href="{{ url_for('upload_page') }}" class="quick-action-card" style="text-decoration:none;display:block">
+              <div class="qa-icon">📁</div><div class="qa-title">Upload Files</div><div class="qa-desc">Analyze your data</div>
+            </a>
+            <a href="{{ url_for('chat_page') }}" class="quick-action-card" style="text-decoration:none;display:block">
+              <div class="qa-icon">🔍</div><div class="qa-title">Explore Data</div><div class="qa-desc">Browse uploaded files</div>
+            </a>
+            <a href="{{ url_for('chat_page') }}" class="quick-action-card" style="text-decoration:none;display:block">
+              <div class="qa-icon">📊</div><div class="qa-title">Visualizations</div><div class="qa-desc">Create charts</div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Chats & Files -->
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <h2 style="font-size:1rem">Recent Chats</h2>
+            <a href="{{ url_for('chat_page') }}" class="btn btn-ghost btn-sm">View All</a>
+          </div>
+          <div class="card-body">
+            {% if recent_chats %}
+              {% for chat in recent_chats %}
+              <div class="recent-item">
+                <div class="recent-icon" style="background:#F5F1FF;color:#7C3AED"><i class="fa-regular fa-message"></i></div>
+                <div class="recent-info">
+                  <div class="recent-title">{{ chat.title }}</div>
+                  <div class="recent-meta">{{ chat.updated_at.strftime('%b %d, %Y') }}</div>
+                </div>
+                <a href="{{ url_for('chat_page') }}" class="btn btn-ghost btn-sm">Open</a>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div style="text-align:center;color:#6B5B85;padding:24px">
+                <i class="fa-regular fa-comments" style="font-size:2rem;margin-bottom:8px;display:block;color:#DDD6FE"></i>
+                No chats yet. <a href="{{ url_for('chat_page') }}">Start your first chat!</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 style="font-size:1rem">Recent Files</h2>
+            <a href="{{ url_for('upload_page') }}" class="btn btn-ghost btn-sm">View All</a>
+          </div>
+          <div class="card-body">
+            {% if recent_files %}
+              {% for f in recent_files %}
+              <div class="recent-item">
+                <div class="recent-icon" style="background:#EDE9FE;color:#7C3AED"><i class="fa-solid fa-file"></i></div>
+                <div class="recent-info">
+                  <div class="recent-title truncate" style="max-width:180px">{{ f.original_filename }}</div>
+                  <div class="recent-meta">{{ f.file_type.upper() }} · {{ format_size(f.file_size or 0) }}</div>
+                </div>
+                <a href="{{ url_for('data_explorer', file_id=f.id) }}" class="btn btn-ghost btn-sm">Explore</a>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div style="text-align:center;color:#6B5B85;padding:24px">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size:2rem;margin-bottom:8px;display:block;color:#DDD6FE"></i>
+                No files yet. <a href="{{ url_for('upload_page') }}">Upload your first file!</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

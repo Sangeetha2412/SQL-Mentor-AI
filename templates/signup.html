@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Sign Up - SQL Mentor AI{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">{% endblock %}
+
+{% block body %}
+<canvas id="three-canvas"></canvas>
+<div class="auth-overlay"></div>
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><i class="fa-solid fa-database"></i></div>
+        <div class="auth-title">Create Account</div>
+        <div class="auth-subtitle">Start learning SQL with AI today</div>
+      </div>
+
+      <form method="POST" action="{{ url_for('auth.signup') }}" novalidate>
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <div class="input-wrapper">
+            <i class="input-icon fa-solid fa-user"></i>
+            <input type="text" name="name" class="form-control" placeholder="Your name" value="{{ name|default('') }}" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-wrapper">
+            <i class="input-icon fa-solid fa-envelope"></i>
+            <input type="email" name="email" class="form-control" placeholder="you@example.com" value="{{ email|default('') }}" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper">
+            <i class="input-icon fa-solid fa-lock"></i>
+            <input type="password" name="password" class="form-control" placeholder="Min 8 characters" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <div class="input-wrapper">
+            <i class="input-icon fa-solid fa-lock"></i>
+            <input type="password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-auth"><i class="fa-solid fa-user-plus"></i> Create Account</button>
+      </form>
+
+      {% if config.GOOGLE_CLIENT_ID %}
+      <div class="divider">or sign up with</div>
+      <a href="{{ url_for('auth.google_login') }}" class="btn-google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+        Continue with Google
+      </a>
+      {% endif %}
+
+      <div class="auth-footer">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></div>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="{{ url_for('static', filename='js/three-background.js') }}"></script>
+{% endblock %}
