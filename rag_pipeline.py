@@ -13,6 +13,7 @@ from chromadb.config import Settings
 from encryption_utils import get_groq_api_key
 from config import Config
 import requests
+from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +34,25 @@ def _get_chroma_client():
         logger.info("ChromaDB client initialized")
     return _chroma_client
 
-
 def _get_embedding_model():
-    return None
+    global _embedding_model
+
+    if _embedding_model is None:
+        logger.info("Loading embedding model...")
+        _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    return _embedding_model
 
 
-def get_embeddings(texts: List[str]) -> List[List[float]]:
-    raise NotImplementedError("Embeddings are disabled.")
+def get_embeddings(texts):
+    model = _get_embedding_model()
+
+    embeddings = model.encode(
+        texts,
+        convert_to_numpy=True
+    )
+
+    return embeddings.tolist()
 
 
 def _get_collection(collection_name: str):
