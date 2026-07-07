@@ -10,7 +10,6 @@ import logging
 from typing import List, Optional
 import chromadb
 from chromadb.config import Settings
-from sentence_transformers import SentenceTransformer
 from encryption_utils import get_groq_api_key
 from config import Config
 import requests
@@ -36,20 +35,11 @@ def _get_chroma_client():
 
 
 def _get_embedding_model():
-    """Load the sentence transformer model (singleton pattern)."""
-    global _embedding_model
-    if _embedding_model is None:
-        logger.info("Loading embedding model...")
-        _embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-        logger.info("Embedding model loaded")
-    return _embedding_model
+    return None
 
 
 def get_embeddings(texts: List[str]) -> List[List[float]]:
-    """Convert a list of text strings into embedding vectors."""
-    model = _get_embedding_model()
-    embeddings = model.encode(texts, show_progress_bar=False)
-    return embeddings.tolist()
+    raise NotImplementedError("Embeddings are disabled.")
 
 
 def _get_collection(collection_name: str):
@@ -298,28 +288,14 @@ def generate_ai_response(
         }
     
     # Retrieve relevant chunks
-    retrieved = retrieve_relevant_chunks(
-        query=user_message,
-        user_id=user_id,
-        file_ids=selected_file_ids,
-        n_results=5
-    )
+    retrieved = {
+    "global_chunks": [],
+    "user_chunks": [],
+    "sources": []
+}
     
     # Build context from retrieved chunks
-    context_parts = []
-    
-    if retrieved['global_chunks']:
-        context_parts.append("### SQL Knowledge Base:\n" + "\n\n".join(retrieved['global_chunks']))
-    
-    if retrieved['user_chunks']:
-        context_parts.append("### Uploaded File Content:\n" + "\n\n".join(retrieved['user_chunks']))
-    
-    # Add file metadata context if files are selected
-    if file_metadata:
-        meta_str = json.dumps(file_metadata, indent=2)[:1500]
-        context_parts.append(f"### File Metadata:\n{meta_str}")
-    
-    context = "\n\n".join(context_parts) if context_parts else ""
+    context = ""
     
     # Build system prompt
     system_prompt = """You are SQL Mentor AI, an expert SQL tutor and data analyst assistant.
@@ -347,11 +323,7 @@ Format your responses in clear Markdown with proper headings, code blocks, and l
     messages = [{"role": "system", "content": system_prompt}]
     
     # Add context as a system message if we have relevant content
-    if context:
-        messages.append({
-            "role": "system",
-            "content": f"Relevant context from knowledge base and uploaded files:\n\n{context}"
-        })
+    
     
     # Add recent chat history (last 10 messages to stay within token limits)
     for msg in chat_history[-10:]:

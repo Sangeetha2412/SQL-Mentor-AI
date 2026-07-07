@@ -1,7 +1,34 @@
-venv/
-__pycache__/
+# Environment
 .env
-instance/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads
 uploads/
+
+# ChromaDB
 chroma_db/
-*.pyc
+
+# Flask
+instance/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
