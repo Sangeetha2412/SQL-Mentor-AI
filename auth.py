@@ -25,7 +25,7 @@ GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for('main_dashboard'))
 
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -67,7 +67,7 @@ def signup():
         db.session.commit()
 
         flash(f'Welcome, {name}! Your account has been created.', 'success')
-        return redirect(url_for('admin.dashboard') if role == 'admin' else url_for('main.dashboard'))
+        return redirect(url_for('admin.dashboard') if role == 'admin' else url_for('main_dashboard'))
 
     return render_template('signup.html')
 
